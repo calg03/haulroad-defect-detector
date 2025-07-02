@@ -11,25 +11,36 @@ services:
       - WORKERS=1
       - MAX_FILE_SIZE=20971520  # 20MB
       - CLEANUP_AFTER_HOURS=24
-      - DEVICE=cuda  # Change to 'cpu' if no GPU available
+      - DEVICE=cpu  # Use CPU for ECS (change to 'cuda' for GPU instances)
+      - ROAD_MODEL_PATH=/app/models/road_segmentation.pth
+      - DEFECT_MODEL_PATH=/app/models/defect_segmentation.pt
+      - UPLOAD_DIR=/app/uploads
+      - OUTPUT_DIR=/app/outputs
     volumes:
       - ./models:/app/models:ro  # Mount model files (read-only)
-      - upload_data:/tmp/uploads
-      - output_data:/tmp/outputs
+      - upload_data:/app/uploads
+      - output_data:/app/outputs
       - ./logs:/app/logs
     deploy:
       resources:
         limits:
           memory: 8G
+          cpus: '2.0'
         reservations:
           memory: 4G
+          cpus: '1.0'
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
-      timeout: 10s
+      timeout: 30s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # Optional: Redis for caching (if needed in future)
   # redis:

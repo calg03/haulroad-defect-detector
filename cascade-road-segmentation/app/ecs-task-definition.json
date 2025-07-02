@@ -1,0 +1,130 @@
+{
+  "family": "road-defect-segmentation-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "2048",
+  "memory": "8192",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "taskRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskRole",
+  "containerDefinitions": [
+    {
+      "name": "road-defect-api",
+      "image": "YOUR_ECR_REPO_URI:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "DEBUG",
+          "value": "false"
+        },
+        {
+          "name": "LOG_LEVEL",
+          "value": "INFO"
+        },
+        {
+          "name": "WORKERS",
+          "value": "1"
+        },
+        {
+          "name": "MAX_FILE_SIZE",
+          "value": "20971520"
+        },
+        {
+          "name": "CLEANUP_AFTER_HOURS",
+          "value": "24"
+        },
+        {
+          "name": "DEVICE",
+          "value": "cpu"
+        },
+        {
+          "name": "ROAD_MODEL_PATH",
+          "value": "/app/models/road_segmentation.pth"
+        },
+        {
+          "name": "DEFECT_MODEL_PATH",
+          "value": "/app/models/defect_segmentation.pt"
+        },
+        {
+          "name": "S3_MODELS_BUCKET",
+          "value": "your-ml-models-bucket"
+        },
+        {
+          "name": "S3_MODELS_PREFIX", 
+          "value": "road-defect/"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "uploads",
+          "containerPath": "/app/uploads",
+          "readOnly": false
+        },
+        {
+          "sourceVolume": "outputs",
+          "containerPath": "/app/outputs",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/road-defect-segmentation-api",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8000/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 30,
+        "retries": 3,
+        "startPeriod": 60
+      },
+      "ulimits": [
+        {
+          "name": "nofile",
+          "softLimit": 65536,
+          "hardLimit": 65536
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "uploads",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "fs-0b7cdb96960640e1c",
+        "rootDirectory": "/uploads",
+        "transitEncryption": "ENABLED"
+      }
+    },
+    {
+      "name": "outputs",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "fs-0b7cdb96960640e1c",
+        "rootDirectory": "/outputs",
+        "transitEncryption": "ENABLED"
+      }
+    }
+  ],
+  "placementConstraints": [],
+  "tags": [
+    {
+      "key": "Environment",
+      "value": "production"
+    },
+    {
+      "key": "Application",
+      "value": "road-defect-segmentation"
+    }
+  ]
+}
