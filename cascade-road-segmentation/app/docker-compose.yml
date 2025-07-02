@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  road-defect-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - WORKERS=1
+      - MAX_FILE_SIZE=20971520  # 20MB
+      - CLEANUP_AFTER_HOURS=24
+      - DEVICE=cuda  # Change to 'cpu' if no GPU available
+    volumes:
+      - ./models:/app/models:ro  # Mount model files (read-only)
+      - upload_data:/tmp/uploads
+      - output_data:/tmp/outputs
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+        reservations:
+          memory: 4G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (if needed in future)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+
+  # Optional: Prometheus for monitoring
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus_data:/prometheus
+  #   restart: unless-stopped
+
+volumes:
+  upload_data:
+  output_data:
+  # redis_data:
+  # prometheus_data:
