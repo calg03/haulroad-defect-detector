@@ -1,0 +1,180 @@
+/* Road Map Component Styles - Isolated from global styles */
+.roadMapContainer {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapWrapper {
+  flex: 1;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  position: relative;
+  min-height: 300px;
+}
+
+.leafletMap {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgb(248 250 252);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+  color: rgb(100 116 139);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.locationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.locationsTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: rgb(51 65 85);
+}
+
+.locationItem {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 2px solid;
+  transition: box-shadow 0.2s ease;
+}
+
+.locationItem:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.locationItem.high {
+  background-color: rgb(254 242 242);
+  border-color: rgb(252 165 165);
+}
+
+.locationItem.medium {
+  background-color: rgb(254 252 232);
+  border-color: rgb(253 224 71);
+}
+
+.locationItem.low {
+  background-color: rgb(240 253 244);
+  border-color: rgb(134 239 172);
+}
+
+.locationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.locationInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.locationIcon {
+  width: 1rem;
+  height: 1rem;
+  color: rgb(100 116 139);
+}
+
+.locationName {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: rgb(30 41 59);
+}
+
+.locationStats {
+  text-align: right;
+}
+
+.defectCount {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.defectCount.high {
+  color: rgb(220 38 38);
+}
+
+.defectCount.medium {
+  color: rgb(161 98 7);
+}
+
+.defectCount.low {
+  color: rgb(22 163 74);
+}
+
+.severityLabel {
+  font-size: 0.75rem;
+  color: rgb(100 116 139);
+  text-transform: capitalize;
+}
+
+/* Leaflet popup custom styles */
+.leafletPopup {
+  font-family: inherit;
+}
+
+.leafletPopup .popupContent {
+  padding: 0.5rem;
+}
+
+.leafletPopup .popupTitle {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.leafletPopup .popupStats {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.leafletPopup .popupSeverity {
+  font-weight: 500;
+}
+
+.leafletPopup .popupSeverity.high {
+  color: rgb(220 38 38);
+}
+
+.leafletPopup .popupSeverity.medium {
+  color: rgb(161 98 7);
+}
+
+.leafletPopup .popupSeverity.low {
+  color: rgb(22 163 74);
+}
+
+.leafletPopup .popupDefectCount {
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+}
