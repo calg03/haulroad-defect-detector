@@ -47,8 +47,8 @@ class CascadeInference:
     
     def __init__(
         self,
-        road_model_path: str = "/home/cloli/experimentation/cascade-road-segmentation/src/utils/segformer/best_epoch26_besto.pth",
-        defect_model_path: str = "/home/cloli/experimentation/cascade-road-segmentation/src/models/unetplusplus_scse_road_defect_20250626_233608_best.pt",
+        road_model_path: str = None,
+        defect_model_path: str = None,
         architecture: str = "unetplusplus_scse",
         device: Optional[str] = None
     ):
@@ -61,8 +61,45 @@ class CascadeInference:
             architecture: Architecture name for defect segmentation model
             device: Device to run on ('cuda', 'cpu', or None for auto-detect)
         """
-        self.device = torch.device(device if device else ("cuda" if torch.cuda.is_available() else "cpu"))
+        # Get model paths from environment variables or parameters
+        if road_model_path is None:
+            road_model_path = os.getenv('ROAD_MODEL_PATH')
+            if road_model_path is None:
+                raise ValueError("❌ ROAD_MODEL_PATH environment variable not set and no path provided")
+        
+        if defect_model_path is None:
+            defect_model_path = os.getenv('DEFECT_MODEL_PATH')
+            if defect_model_path is None:
+                raise ValueError("❌ DEFECT_MODEL_PATH environment variable not set and no path provided")
+        
+        # Validate model files exist
+        if not os.path.exists(road_model_path):
+            raise FileNotFoundError(f"❌ Road model not found: {road_model_path}")
+        
+        if not os.path.exists(defect_model_path):
+            raise FileNotFoundError(f"❌ Defect model not found: {defect_model_path}")
+        
+        # Force CPU device for compatibility
+        if device:
+            if device.lower() == 'cuda':
+                try:
+                    # Test if CUDA actually works
+                    torch.tensor([1.0]).cuda()
+                    self.device = torch.device("cuda")
+                    print(f"✅ CUDA device initialized successfully")
+                except (AssertionError, RuntimeError) as e:
+                    print(f"⚠️ CUDA requested but not available: {e}")
+                    self.device = torch.device("cpu")
+            else:
+                self.device = torch.device(device)
+        else:
+            # Always use CPU for compatibility
+            self.device = torch.device("cpu")
+            
+        print(f"🔧 Using device: {self.device}")
         self.architecture = architecture
+        self.road_model_path = road_model_path
+        self.defect_model_path = defect_model_path
         
         # Fixed configuration for deployment
         self.segformer_pretrain = "nvidia/segformer-b0-finetuned-cityscapes-1024-1024"
@@ -90,12 +127,12 @@ class CascadeInference:
         self.confidence_threshold = 0.6  # Minimum confidence threshold
         
         # Load models
-        self._load_models(road_model_path, defect_model_path)
+        self._load_models(self.road_model_path, self.defect_model_path)
         
         print(f"✅ Cascade inference initialized on {self.device}")
         print(f"🏗️ Architecture: {self.architecture}")
-        print(f"🛣️ Road model: {os.path.basename(road_model_path)}")
-        print(f"🚧 Defect model: {os.path.basename(defect_model_path)}")
+        print(f"🛣️ Road model: {os.path.basename(self.road_model_path)}")
+        print(f"🚧 Defect model: {os.path.basename(self.defect_model_path)}")
     
     def _load_models(self, road_model_path: str, defect_model_path: str):
         """Load road and defect segmentation models"""
@@ -108,8 +145,11 @@ class CascadeInference:
                 ignore_mismatched_sizes=True
             )
             
-            # Load road model weights
-            road_state_dict = torch.load(road_model_path, map_location=self.device)
+            # Load road model weights with proper device mapping - Force CPU for compatibility
+            try:
+                road_state_dict = torch.load(road_model_path, map_location='cpu', weights_only=False)
+            except TypeError:
+                road_state_dict = torch.load(road_model_path, map_location='cpu')
             self.road_model.load_state_dict(road_state_dict, strict=False)
             self.road_model.to(self.device).eval()
             
@@ -139,11 +179,11 @@ class CascadeInference:
                 from segmentation_models_pytorch.encoders import get_preprocessing_fn
                 self.preprocessing_fn = get_preprocessing_fn("efficientnet-b5", "imagenet")
             
-            # Load defect model weights
+            # Load defect model weights - Force CPU for compatibility
             try:
-                defect_state_dict = torch.load(defect_model_path, map_location=self.device, weights_only=False)
+                defect_state_dict = torch.load(defect_model_path, map_location='cpu', weights_only=False)
             except TypeError:
-                defect_state_dict = torch.load(defect_model_path, map_location=self.device)
+                defect_state_dict = torch.load(defect_model_path, map_location='cpu')
             
             if 'model_state_dict' in defect_state_dict:
                 self.defect_model.load_state_dict(defect_state_dict['model_state_dict'])

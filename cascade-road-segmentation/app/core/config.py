@@ -25,17 +25,17 @@ class Settings(BaseSettings):
     port: int = 8000
     workers: int = 1
     
-    # Model Configuration - Windows development paths
-    road_model_path: str = "C:/TESIS/cascade-road-segmentation/src/models/best_epoch26_besto.pth"
-    defect_model_path: str = "C:/TESIS/cascade-road-segmentation/src/models/unetplusplus_scse_road_defect_20250626_233608_best.pt"
+    # Model Configuration - Docker container paths
+    road_model_path: str = "/app/models/road_segmentation.pth"
+    defect_model_path: str = "/app/models/defect_segmentation.pt"
     architecture: str = "unetplusplus_scse"
     device: Optional[str] = None  # Auto-detect if None
     
     # File Upload Settings
     max_file_size: int = 10 * 1024 * 1024  # 10MB
     allowed_extensions: list = [".jpg", ".jpeg", ".png", ".bmp", ".tiff"]
-    upload_dir: str = "C:/TESIS/cascade-road-segmentation/app/uploads"
-    output_dir: str = "C:/TESIS/cascade-road-segmentation/app/outputs"
+    upload_dir: str = "/app/uploads"
+    output_dir: str = "/app/outputs"
     
     # Processing Settings
     confidence_threshold: float = 0.6
@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra environment variables
 
 
 # Global settings instance

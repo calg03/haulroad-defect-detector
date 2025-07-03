@@ -85,6 +85,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -94,12 +95,12 @@ app.add_middleware(
     allow_headers=settings.allowed_headers,
 )
 
-# Add trusted host middleware for security
-if not settings.debug:
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["localhost", "127.0.0.1", settings.host]
-    )
+# Add trusted host middleware for security - Disabled for PoC
+# if not settings.debug:
+#     app.add_middleware(
+#         TrustedHostMiddleware,
+#         allowed_hosts=["localhost", "127.0.0.1", settings.host]
+#     )
 
 # Include API routes
 app.include_router(
